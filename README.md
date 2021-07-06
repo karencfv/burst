@@ -1,4 +1,4 @@
-# Burst
+# Burst 💥
 
 Burst is a simple tool to send load to a host.
 
