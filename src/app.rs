@@ -13,7 +13,15 @@ pub fn burst_app() -> Client {
         .takes_value(true)
         .default_value("100")
         .help("Amount of requests to send.")
-        .required(true);
+        .required(false);
+
+    let duration_arg = Arg::with_name("duration")
+        .long("duration")
+        .short("d")
+        .takes_value(true)
+        .default_value("0")
+        .help("Sends load for the given amount of time set in seconds. Cannot be used in conjunction with --load")
+        .required(false);
 
     let workers_arg = Arg::with_name("workers")
         .long("workers")
@@ -21,7 +29,7 @@ pub fn burst_app() -> Client {
         .takes_value(true)
         .default_value("10")
         .help("Number of workers to run in parallel.")
-        .required(true);
+        .required(false);
 
     let timeout_arg = Arg::with_name("timeout")
         .long("timeout")
@@ -29,7 +37,7 @@ pub fn burst_app() -> Client {
         .takes_value(true)
         .default_value("20")
         .help("Timeout in seconds for each request.")
-        .required(true);
+        .required(false);
 
     let host_arg = Arg::with_name("host")
         .long("host")
@@ -57,6 +65,7 @@ pub fn burst_app() -> Client {
 
     let app = app
         .arg(load_arg)
+        .arg(duration_arg)
         .arg(timeout_arg)
         .arg(host_arg)
         .arg(workers_arg)
@@ -65,12 +74,17 @@ pub fn burst_app() -> Client {
 
     let matches = app.get_matches();
     value_t!(matches, "load", usize).expect("Value for load must be a positive number");
+    value_t!(matches, "duration", usize).expect("Value for duration must be a positive number");
     value_t!(matches, "workers", usize).expect("Value for workers must be a positive number");
     value_t!(matches, "timeout", usize).expect("Value for timeout must be a positive number");
 
     let load = matches
         .value_of("load")
         .expect("A value for load is required");
+
+    let duration = matches
+        .value_of("duration")
+        .expect("A value for duration is required");
 
     let workers = matches
         .value_of("workers")
@@ -92,9 +106,7 @@ pub fn burst_app() -> Client {
         .value_of("pass")
         .expect("A value for pass is required");
 
-    // maybe remove this line?
-    println!("Sending {} requests...", load);
-
+    let duration: u64 = duration.parse().unwrap();
     let workers: usize = workers.parse().unwrap();
     let timeout: u64 = timeout.parse().unwrap();
     let user: String = user.parse().unwrap();
@@ -105,5 +117,13 @@ pub fn burst_app() -> Client {
 
     // TODO: For now user and pass are being sent as empty strings.
     // I need to figure out how to use Option<T> to send these as None if empty.
-    Client::new(requests, String::from(host), workers, timeout, user, pass)
+    Client::new(
+        requests,
+        duration,
+        String::from(host),
+        workers,
+        timeout,
+        user,
+        pass,
+    )
 }

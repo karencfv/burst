@@ -14,5 +14,5 @@ dtrace_provider!("src/burst.d");
 #[tokio::main]
 async fn main() {
     let client = burst_app();
-    client.process_requests().await;
+    client.send_load().await;
 }

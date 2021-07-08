@@ -3,7 +3,7 @@ use rand::Rng;
 use reqwest::Result;
 use usdt::dtrace_provider;
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 dtrace_provider!("src/burst.d");
 
@@ -11,6 +11,7 @@ dtrace_provider!("src/burst.d");
 pub struct Client {
     pub req_client: reqwest::Client,
     pub requests: Vec<usize>,
+    pub duration: u64,
     pub host: String,
     pub workers: usize,
     pub basic_auth: (String, Option<String>),
@@ -19,6 +20,7 @@ pub struct Client {
 impl Client {
     pub fn new(
         requests: Vec<usize>,
+        duration: u64,
         host: String,
         workers: usize,
         timeout: u64,
@@ -33,6 +35,7 @@ impl Client {
         Self {
             req_client,
             requests,
+            duration,
             host,
             workers,
             basic_auth,
@@ -62,6 +65,21 @@ impl Client {
         Ok(())
     }
 
+    // I'm not sure if these methods that consume other methods should be
+    // standalone functions that take Client as a parameter instead.
+    // Which would be idiomatic Rust?
+    pub async fn send_load(&self) {
+        if self.duration > 0 {
+            // maybe remove this line?
+            println!("Sending requests for {} seconds...", self.duration);
+            self.process_requests_duration().await;
+        } else {
+            // maybe remove this line?
+            println!("Sending {} requests...", self.requests.len());
+            self.process_requests().await;
+        }
+    }
+
     pub async fn process_requests(&self) {
         let id = rand::thread_rng().gen();
         burst_requests__start!(|| id);
@@ -86,5 +104,16 @@ impl Client {
             .await;
 
         burst_requests__done!(|| id);
+    }
+
+    pub async fn process_requests_duration(&self) {
+        let mut client = self.clone();
+        client.requests = vec![1];
+        let secs = client.duration;
+
+        let now = Instant::now();
+        while now.elapsed().as_secs() < secs {
+            client.process_requests().await;
+        }
     }
 }
