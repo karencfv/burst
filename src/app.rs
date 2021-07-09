@@ -6,7 +6,7 @@ use crate::client::Client;
 pub fn burst_app() -> Client {
     let app = App::new("burst")
         .version("0.1-dev")
-        .about("Sends bursts of requests");
+        .about("Sends bursts of requests to a specified host.");
 
     let load_arg = Arg::with_name("load")
         .long("load")
@@ -21,7 +21,7 @@ pub fn burst_app() -> Client {
         .short("d")
         .takes_value(true)
         .default_value("0")
-        .help("Sends load for the given amount of time set in seconds. Cannot be used in conjunction with --load")
+        .help("Sends load for the given amount of time set in seconds. Cannot be used in conjunction with --load.")
         .required(false);
 
     let workers_arg = Arg::with_name("workers")
@@ -81,31 +81,31 @@ pub fn burst_app() -> Client {
 
     let load = matches
         .value_of("load")
-        .expect("A value for load is required");
+        .expect("A value for load is required.");
 
     let duration = matches
         .value_of("duration")
-        .expect("A value for duration is required");
+        .expect("A value for duration is required.");
 
     let workers = matches
         .value_of("workers")
-        .expect("A value for workers is required");
+        .expect("A value for workers is required.");
 
     let timeout = matches
         .value_of("timeout")
-        .expect("A value for timeout is required");
+        .expect("A value for timeout is required.");
 
     let host = matches
         .value_of("host")
-        .expect("A value for host is required");
+        .expect("A value for host is required.");
 
     let user = matches
         .value_of("user")
-        .expect("A value for user is required");
+        .expect("A value for user is required.");
 
     let pass = matches
         .value_of("pass")
-        .expect("A value for pass is required");
+        .expect("A value for pass is required.");
 
     let duration: u64 = duration.parse().unwrap();
     let workers: usize = workers.parse().unwrap();

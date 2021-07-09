@@ -6,7 +6,7 @@ Burst is a simple tool to send load to a host.
 
 ```console
 burst 0.1-dev
-Sends bursts of requests
+Sends bursts of requests to a specified host.
 
 USAGE:
     burst [OPTIONS] --host <host>
