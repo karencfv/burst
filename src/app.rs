@@ -1,4 +1,5 @@
 use clap::{App, Arg};
+use reqwest::Method;
 
 use crate::client::Client;
 
@@ -115,6 +116,9 @@ pub fn burst_app() -> Client {
     let reqs: usize = load.parse().unwrap();
     let requests: Vec<usize> = (0..reqs).collect();
 
+    // For now hardcoding this to GET, but will introduce other HTTP methods eventually
+    let method = Method::GET;
+
     // TODO: For now user and pass are being sent as empty strings.
     // I need to figure out how to use Option<T> to send these as None if empty.
     Client::new(
@@ -123,6 +127,7 @@ pub fn burst_app() -> Client {
         String::from(host),
         workers,
         timeout,
+        method,
         user,
         pass,
     )

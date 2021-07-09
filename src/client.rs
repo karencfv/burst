@@ -1,6 +1,6 @@
 use futures::{stream, StreamExt};
 use rand::Rng;
-use reqwest::Result;
+use reqwest::{Method, Result};
 use usdt::dtrace_provider;
 
 use std::time::{Duration, Instant};
@@ -14,6 +14,7 @@ pub struct Client {
     pub duration: u64,
     pub host: String,
     pub workers: usize,
+    pub method: Method,
     pub basic_auth: (String, Option<String>),
 }
 
@@ -24,6 +25,7 @@ impl Client {
         host: String,
         workers: usize,
         timeout: u64,
+        method: Method,
         user: String,
         pass: String,
     ) -> Self {
@@ -38,6 +40,7 @@ impl Client {
             duration,
             host,
             workers,
+            method,
             basic_auth,
         }
     }
@@ -88,8 +91,14 @@ impl Client {
             .map(|_| {
                 let client = self.clone();
                 tokio::spawn(async move {
-                    if let Err(e) = client.get().await {
-                        eprintln!("Request error: {}", e);
+                    match &client.method {
+                        &Method::GET => {
+                            if let Err(e) = client.get().await {
+                                eprintln!("Request error: {}", e);
+                            }
+                        }
+                        // TODO: Implement other methods
+                        _ => panic!("{} is not a supported HTTP method", client.method),
                     }
                 })
             })
