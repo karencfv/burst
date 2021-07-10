@@ -45,7 +45,22 @@ impl Client {
         }
     }
 
-    pub async fn get(&self) -> Result<()> {
+    // I'm not sure if these methods that consume other methods should be
+    // standalone functions that take Client as a parameter instead.
+    // Which would be idiomatic Rust?
+    pub async fn send_load(&self) {
+        if self.duration > 0 {
+            // maybe remove this line?
+            println!("Sending requests for {} seconds...", self.duration);
+            self.process_requests_duration().await;
+        } else {
+            // maybe remove this line?
+            println!("Sending {} requests...", self.requests.len());
+            self.process_requests().await;
+        }
+    }
+
+    async fn get(&self) -> Result<()> {
         let id = rand::thread_rng().gen();
         let (u, p) = &self.basic_auth;
         burst_get__start!(|| id);
@@ -68,22 +83,7 @@ impl Client {
         Ok(())
     }
 
-    // I'm not sure if these methods that consume other methods should be
-    // standalone functions that take Client as a parameter instead.
-    // Which would be idiomatic Rust?
-    pub async fn send_load(&self) {
-        if self.duration > 0 {
-            // maybe remove this line?
-            println!("Sending requests for {} seconds...", self.duration);
-            self.process_requests_duration().await;
-        } else {
-            // maybe remove this line?
-            println!("Sending {} requests...", self.requests.len());
-            self.process_requests().await;
-        }
-    }
-
-    pub async fn process_requests(&self) {
+    async fn process_requests(&self) {
         let id = rand::thread_rng().gen();
         burst_requests__start!(|| id);
 
@@ -115,7 +115,7 @@ impl Client {
         burst_requests__done!(|| id);
     }
 
-    pub async fn process_requests_duration(&self) {
+    async fn process_requests_duration(&self) {
         let mut client = self.clone();
         client.requests = vec![1];
         let secs = client.duration;
