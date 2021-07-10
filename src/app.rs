@@ -21,7 +21,8 @@ pub fn burst_app() -> Client {
         .short("d")
         .takes_value(true)
         .default_value("0")
-        .help("Sends load for the given amount of time set in seconds. Cannot be used in conjunction with --load.")
+        .help("Sends load for the given amount of time set in seconds.
+The actual running time will vary depending on the load, and the time it takes for the response to return. If you need the time to be exact set --load=1.")
         .required(false);
 
     let workers_arg = Arg::with_name("workers")

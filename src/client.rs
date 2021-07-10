@@ -116,13 +116,11 @@ impl Client {
     }
 
     async fn process_requests_duration(&self) {
-        let mut client = self.clone();
-        client.requests = vec![1];
-        let secs = client.duration;
-
+        let secs = self.duration;
         let now = Instant::now();
+
         while now.elapsed().as_secs() < secs {
-            client.process_requests().await;
+            self.process_requests().await;
         }
     }
 }
