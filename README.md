@@ -1,6 +1,8 @@
 # Burst 💥
 
-Burst is a simple tool to send load to a host.
+Burst is a simple tool that sends load to a host.
+
+_WARNING: Burst is under active development. Subcommands and flags may change at any moment._
 
 ## How to use
 
@@ -26,4 +28,23 @@ OPTIONS:
 SUBCOMMANDS:
     duration    Sends load for the given amount of time set in seconds.
     help        Prints this message or the help of the given subcommand(s)
+```
+
+## Examples
+
+Send 300 requests with 5 workers running in parallel:
+
+```console
+$ burst -l 300 -w 5
+```
+
+Send a single request continuously during 30 seconds:
+
+```console
+$ burst -l 1 duration 30
+```
+
+Send bursts of 20 requests every 2 seconds during 60 seconds:
+```console
+$ burst -l 20 duration 60 -i 2
 ```

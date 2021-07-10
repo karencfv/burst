@@ -8,15 +8,6 @@ pub fn burst_app() -> Client {
         .version("0.1-dev")
         .about("Sends bursts of requests to a specified host.");
 
-    let duration_cmd = SubCommand::with_name("duration")
-        .about("Sends load for the given amount of time set in seconds.")
-        .arg(
-            Arg::with_name("time")
-                .help("Amount of time in seconds for load to be sent. The actual running time will vary depending on the load, and the time it takes for the response to return. If you need the time to be exact set --load=1.")
-                .index(1)
-                .required(true),
-        );
-
     let load_arg = Arg::with_name("load")
         .long("load")
         .short("l")
@@ -65,6 +56,25 @@ pub fn burst_app() -> Client {
         .help("Password for basic authentication.")
         .required(false);
 
+    let duration_cmd = SubCommand::with_name("duration")
+        .about("Sends load for the given amount of time set in seconds.")
+        .arg(
+            Arg::with_name("time")
+                .help("Amount of time in seconds for load to be sent. The actual running time will vary depending on the load 
+and the time it takes for the response to return. If you need the time to be exact set --load=1.")
+                .index(1)
+                .required(true),
+        )
+        .arg(
+            Arg::with_name("interval")
+                .long("interval")
+                .short("i")
+                .takes_value(true)
+                .default_value("0")
+                .help("Interval time between bursts of requests in seconds.")
+                .required(false)
+        );
+
     let app = app
         .arg(load_arg)
         .arg(timeout_arg)
@@ -100,19 +110,6 @@ pub fn burst_app() -> Client {
         .value_of("pass")
         .expect("A value for pass is required.");
 
-    // Sets duration to 0 unless the duration subcommand has been used.
-    // In which case load will be sent for a specified duration as opposed
-    // to a single burst of n amount of requests.
-    let mut duration: u64 = 0;
-    if let Some(matches) = matches.subcommand_matches("duration") {
-        println!("Setting duration: {}", matches.value_of("time").unwrap());
-        let time = matches
-            .value_of("time")
-            .expect("A value for time is required.");
-        let time: u64 = time.parse().unwrap();
-        duration = time;
-    }
-
     let workers: usize = workers.parse().unwrap();
     let timeout: u64 = timeout.parse().unwrap();
     let user: String = user.parse().unwrap();
@@ -121,14 +118,34 @@ pub fn burst_app() -> Client {
     let reqs: usize = load.parse().unwrap();
     let requests: Vec<usize> = (0..reqs).collect();
 
+    // Sets duration to 0 unless the duration subcommand has been used.
+    // In which case load will be sent for a specified duration as opposed
+    // to a single burst of n amount of requests.
+    let mut duration: u64 = 0;
+    let mut interval: u64 = 0;
+    if let Some(matches) = matches.subcommand_matches("duration") {
+        let time = matches
+            .value_of("time")
+            .expect("A value for time is required.");
+        let time: u64 = time.parse().unwrap();
+        duration = time;
+
+        let interval_time = matches
+            .value_of("interval")
+            .expect("A value for interval is expected");
+        let interval_time: u64 = interval_time.parse().unwrap();
+        interval = interval_time;
+    }
+
     // For now hardcoding this to GET, but will introduce other HTTP methods eventually
     let method = Method::GET;
 
-    // TODO: For now user and pass are being sent as empty strings.
-    // I need to figure out how to use Option<T> to send these as None if empty.
+    // TODO: For now user and pass are being sent as empty strings if empty.
+    // I need to figure out how to use Option<T> to send these as None.
     Client::new(
         requests,
         duration,
+        interval,
         String::from(host),
         workers,
         timeout,

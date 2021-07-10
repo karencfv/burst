@@ -1,6 +1,7 @@
 use futures::{stream, StreamExt};
 use rand::Rng;
 use reqwest::{Method, Result};
+use tokio::time;
 use usdt::dtrace_provider;
 
 use std::time::{Duration, Instant};
@@ -12,6 +13,7 @@ pub struct Client {
     pub req_client: reqwest::Client,
     pub requests: Vec<usize>,
     pub duration: u64,
+    pub interval: u64,
     pub host: String,
     pub workers: usize,
     pub method: Method,
@@ -22,6 +24,7 @@ impl Client {
     pub fn new(
         requests: Vec<usize>,
         duration: u64,
+        interval: u64,
         host: String,
         workers: usize,
         timeout: u64,
@@ -38,6 +41,7 @@ impl Client {
             req_client,
             requests,
             duration,
+            interval,
             host,
             workers,
             method,
@@ -119,8 +123,19 @@ impl Client {
         let secs = self.duration;
         let now = Instant::now();
 
-        while now.elapsed().as_secs() < secs {
-            self.process_requests().await;
+        if self.interval > 0 {
+            let mut interval = time::interval(time::Duration::from_secs(self.interval));
+
+            while now.elapsed().as_secs() < secs {
+                // Remove this line, it is only for development purposes
+                println!("tick {} secs", self.interval);
+                interval.tick().await;
+                self.process_requests().await;
+            }
+        } else {
+            while now.elapsed().as_secs() < secs {
+                self.process_requests().await;
+            }
         }
     }
 }
