@@ -1,5 +1,5 @@
 #![feature(asm)]
-#[macro_use]
+
 extern crate clap;
 
 use usdt::dtrace_provider;

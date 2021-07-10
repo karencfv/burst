@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{App, Arg, SubCommand};
 use reqwest::Method;
 
 use crate::client::Client;
@@ -8,21 +8,21 @@ pub fn burst_app() -> Client {
         .version("0.1-dev")
         .about("Sends bursts of requests to a specified host.");
 
+    let duration_cmd = SubCommand::with_name("duration")
+        .about("Sends load for the given amount of time set in seconds.")
+        .arg(
+            Arg::with_name("time")
+                .help("Amount of time in seconds for load to be sent. The actual running time will vary depending on the load, and the time it takes for the response to return. If you need the time to be exact set --load=1.")
+                .index(1)
+                .required(true),
+        );
+
     let load_arg = Arg::with_name("load")
         .long("load")
         .short("l")
         .takes_value(true)
         .default_value("100")
         .help("Amount of requests to send.")
-        .required(false);
-
-    let duration_arg = Arg::with_name("duration")
-        .long("duration")
-        .short("d")
-        .takes_value(true)
-        .default_value("0")
-        .help("Sends load for the given amount of time set in seconds.
-The actual running time will vary depending on the load, and the time it takes for the response to return. If you need the time to be exact set --load=1.")
         .required(false);
 
     let workers_arg = Arg::with_name("workers")
@@ -67,26 +67,18 @@ The actual running time will vary depending on the load, and the time it takes f
 
     let app = app
         .arg(load_arg)
-        .arg(duration_arg)
         .arg(timeout_arg)
         .arg(host_arg)
         .arg(workers_arg)
         .arg(pass_arg)
-        .arg(user_arg);
+        .arg(user_arg)
+        .subcommand(duration_cmd);
 
     let matches = app.get_matches();
-    value_t!(matches, "load", usize).expect("Value for load must be a positive number");
-    value_t!(matches, "duration", usize).expect("Value for duration must be a positive number");
-    value_t!(matches, "workers", usize).expect("Value for workers must be a positive number");
-    value_t!(matches, "timeout", usize).expect("Value for timeout must be a positive number");
 
     let load = matches
         .value_of("load")
         .expect("A value for load is required.");
-
-    let duration = matches
-        .value_of("duration")
-        .expect("A value for duration is required.");
 
     let workers = matches
         .value_of("workers")
@@ -108,7 +100,19 @@ The actual running time will vary depending on the load, and the time it takes f
         .value_of("pass")
         .expect("A value for pass is required.");
 
-    let duration: u64 = duration.parse().unwrap();
+    // Sets duration to 0 unless the duration subcommand has been used.
+    // In which case load will be sent for a specified duration as opposed
+    // to a single burst of n amount of requests.
+    let mut duration: u64 = 0;
+    if let Some(matches) = matches.subcommand_matches("duration") {
+        println!("Setting duration: {}", matches.value_of("time").unwrap());
+        let time = matches
+            .value_of("time")
+            .expect("A value for time is required.");
+        let time: u64 = time.parse().unwrap();
+        duration = time;
+    }
+
     let workers: usize = workers.parse().unwrap();
     let timeout: u64 = timeout.parse().unwrap();
     let user: String = user.parse().unwrap();
