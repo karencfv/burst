@@ -18,6 +18,7 @@ pub struct Client {
     pub workers: usize,
     pub method: Method,
     pub basic_auth: (String, Option<String>),
+    pub verbose: bool,
 }
 
 impl Client {
@@ -31,6 +32,7 @@ impl Client {
         method: Method,
         user: String,
         pass: String,
+        verbose: bool,
     ) -> Self {
         let basic_auth = (user, Some(pass));
         let req_client = reqwest::Client::builder()
@@ -46,6 +48,7 @@ impl Client {
             workers,
             method,
             basic_auth,
+            verbose,
         }
     }
 
@@ -79,9 +82,12 @@ impl Client {
 
         // TODO: Only print with --verbose. Also, maybe instead of printing all statuses,
         // create a summary of how many requests returned each status.
-        println!("Request ID: {} status: {}", id, res.status());
+        if self.verbose {
+            println!("Request ID: {} status: {}", id, res.status());
+        }
+
         // The following prints the response body. Might be useful to have as an
-        // option to print it all out in a file.
+        // option to print it all out in a file?.
         // let body = res.text().await?;
         // println!("Body:\n\n{}", body);
         Ok(())
@@ -127,8 +133,10 @@ impl Client {
             let mut interval = time::interval(time::Duration::from_secs(self.interval));
 
             while now.elapsed().as_secs() < secs {
-                // Remove this line, it is only for development purposes
-                println!("tick {} secs", self.interval);
+                if self.verbose {
+                    // Remove this line, it is only for development purposes
+                    println!("tick {} secs", self.interval);
+                }
                 interval.tick().await;
                 self.process_requests().await;
             }

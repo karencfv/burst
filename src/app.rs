@@ -72,6 +72,12 @@ The actual running time will vary depending on the load, and the time it takes f
         .help("Password for basic authentication.")
         .required(false);
 
+    let verbose_arg = Arg::with_name("verbose")
+        .long("verbose")
+        .short("v")
+        .help("Enable verbose mode.")
+        .required(false);
+
     let app = app
         .arg(load_arg)
         .arg(duration_arg)
@@ -80,6 +86,7 @@ The actual running time will vary depending on the load, and the time it takes f
         .arg(host_arg)
         .arg(workers_arg)
         .arg(pass_arg)
+        .arg(verbose_arg)
         .arg(user_arg);
 
     let matches = app.get_matches();
@@ -137,6 +144,11 @@ The actual running time will vary depending on the load, and the time it takes f
         interval = interval_time;
     }
 
+    let mut verbose = false;
+    if matches.is_present("verbose") {
+        verbose = true;
+    }
+
     // For now hardcoding this to GET, but will introduce other HTTP methods eventually
     let method = Method::GET;
 
@@ -152,5 +164,6 @@ The actual running time will vary depending on the load, and the time it takes f
         method,
         user,
         pass,
+        verbose,
     )
 }
