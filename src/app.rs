@@ -140,7 +140,7 @@ The actual running time will vary depending on the load, workers and the time it
         user = user_str;
     }
 
-    let mut pass = Some(String::from(""));
+    let mut pass = None;
     if matches.is_present("pass") {
         let pass_str = matches
             .value_of("pass")
@@ -157,8 +157,6 @@ The actual running time will vary depending on the load, workers and the time it
     // For now hardcoding this to GET, but will introduce other HTTP methods eventually
     let method = Method::GET;
 
-    // TODO: For now user and pass are being sent as empty strings if empty.
-    // I need to figure out how to use Option<T> to send these as None.
     Client::new(
         requests,
         duration,

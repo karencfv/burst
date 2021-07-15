@@ -53,18 +53,19 @@ impl Client {
         }
     }
 
-    // I'm not sure if these methods that consume other methods should be
+    // I'm not sure if these methods that execute other methods should be
     // standalone functions that take Client as a parameter instead.
     // Which would be idiomatic Rust?
     pub async fn send_load(&self) {
+        let id: u64 = rand::thread_rng().gen();
         if self.duration > 0 {
             // maybe remove this line?
             println!("Sending requests for {} seconds...", self.duration);
-            self.process_requests_duration().await;
+            self.process_requests_timed(id).await;
         } else {
             // maybe remove this line?
             println!("Sending {} requests...", self.requests.len());
-            self.process_requests().await;
+            self.process_requests(id).await;
         }
     }
 
@@ -92,8 +93,7 @@ impl Client {
         Ok(())
     }
 
-    async fn process_requests(&self) {
-        let id = rand::thread_rng().gen();
+    async fn process_requests(&self, id: u64) {
         burst_requests__start!(|| id);
 
         let requests = stream::iter(&self.requests)
@@ -107,7 +107,7 @@ impl Client {
                             }
                         }
                         // TODO: Implement other methods
-                        _ => panic!("{} is not a supported HTTP method", client.method),
+                        _ => eprintln!("{} is not a supported HTTP method", client.method),
                     }
                 })
             })
@@ -116,7 +116,7 @@ impl Client {
         requests
             .for_each(|r| async {
                 if let Err(e) = r {
-                    eprintln!("Internal tokio::JoinError: {}", e)
+                    eprintln!("Internal tokio::JoinError: {}", e);
                 };
             })
             .await;
@@ -124,24 +124,25 @@ impl Client {
         burst_requests__done!(|| id);
     }
 
-    async fn process_requests_duration(&self) {
-        let secs = self.duration;
+    async fn process_requests_timed(&self, id: u64) {
         let now = Instant::now();
 
+        burst_timedrequests__start!(|| id);
         if self.interval > 0 {
             let mut interval = time::interval(time::Duration::from_secs(self.interval));
 
-            while now.elapsed().as_secs() < secs {
+            while now.elapsed().as_secs() < self.duration {
                 if self.verbose {
                     println!("Pausing for {} seconds", self.interval);
                 }
                 interval.tick().await;
-                self.process_requests().await;
+                self.process_requests(id).await;
             }
         } else {
-            while now.elapsed().as_secs() < secs {
-                self.process_requests().await;
+            while now.elapsed().as_secs() < self.duration {
+                self.process_requests(id).await;
             }
         }
+        burst_timedrequests__done!(|| id);
     }
 }
