@@ -29,7 +29,7 @@ pub fn burst_app() -> Client {
         .short("d")
         .takes_value(true)
         .help("Sends load for the given amount of time set in seconds.
-The actual running time will vary depending on the load, and the time it takes for the response to return. If you need the time to be exact set --load=1.")
+The actual running time will vary depending on the load, workers and the time it takes for the response to return.")
         .required(false);
 
     let interval_arg = Arg::with_name("interval")
@@ -52,7 +52,6 @@ The actual running time will vary depending on the load, and the time it takes f
         .long("host")
         .short("h")
         .takes_value(true)
-        .default_value("https://www.google.com/") // Only for development, remove later
         .help("Host header to send the requests to.")
         .required(true);
 
@@ -60,7 +59,6 @@ The actual running time will vary depending on the load, and the time it takes f
         .long("user")
         .short("u")
         .takes_value(true)
-        .default_value("")
         .help("User for basic authentication.")
         .required(false);
 
@@ -68,7 +66,6 @@ The actual running time will vary depending on the load, and the time it takes f
         .long("pass")
         .short("p")
         .takes_value(true)
-        .default_value("")
         .help("Password for basic authentication.")
         .required(false);
 
@@ -107,18 +104,8 @@ The actual running time will vary depending on the load, and the time it takes f
         .value_of("host")
         .expect("A value for host is required.");
 
-    let user = matches
-        .value_of("user")
-        .expect("A value for user is required.");
-
-    let pass = matches
-        .value_of("pass")
-        .expect("A value for pass is required.");
-
     let workers: usize = workers.parse().unwrap();
     let timeout: u64 = timeout.parse().unwrap();
-    let user: String = user.parse().unwrap();
-    let pass: String = pass.parse().unwrap();
 
     let reqs: usize = load.parse().unwrap();
     let requests: Vec<usize> = (0..reqs).collect();
@@ -139,9 +126,27 @@ The actual running time will vary depending on the load, and the time it takes f
     if matches.is_present("interval") {
         let interval_time = matches
             .value_of("interval")
-            .expect("A value for interval is expected");
+            .expect("A value for interval is required");
         let interval_time: u64 = interval_time.parse().unwrap();
         interval = interval_time;
+    }
+
+    let mut user = String::from("");
+    if matches.is_present("user") {
+        let user_str = matches
+            .value_of("user")
+            .expect("A value for user is required");
+        let user_str: String = user_str.parse().unwrap();
+        user = user_str;
+    }
+
+    let mut pass = Some(String::from(""));
+    if matches.is_present("pass") {
+        let pass_str = matches
+            .value_of("pass")
+            .expect("A value for pass is required");
+        let pass_str: String = pass_str.parse().unwrap();
+        pass = Some(pass_str);
     }
 
     let mut verbose = false;

@@ -17,7 +17,8 @@ pub struct Client {
     pub host: String,
     pub workers: usize,
     pub method: Method,
-    pub basic_auth: (String, Option<String>),
+    pub user: String,
+    pub pass: Option<String>,
     pub verbose: bool,
 }
 
@@ -31,10 +32,9 @@ impl Client {
         timeout: u64,
         method: Method,
         user: String,
-        pass: String,
+        pass: Option<String>,
         verbose: bool,
     ) -> Self {
-        let basic_auth = (user, Some(pass));
         let req_client = reqwest::Client::builder()
             .timeout(Duration::from_secs(timeout))
             .build()
@@ -47,7 +47,8 @@ impl Client {
             host,
             workers,
             method,
-            basic_auth,
+            user,
+            pass,
             verbose,
         }
     }
@@ -69,19 +70,17 @@ impl Client {
 
     async fn get(&self) -> Result<()> {
         let id = rand::thread_rng().gen();
-        let (u, p) = &self.basic_auth;
         burst_get__start!(|| id);
 
         let res = self
             .req_client
             .get(&self.host)
-            .basic_auth(u, p.as_ref())
+            .basic_auth(&self.user, self.pass.as_ref())
             .send()
             .await?;
         burst_get__done!(|| id);
 
-        // TODO: Only print with --verbose. Also, maybe instead of printing all statuses,
-        // create a summary of how many requests returned each status.
+        // TODO: Maybe create a summary of how many requests returned each status as well?
         if self.verbose {
             println!("Request ID: {} status: {}", id, res.status());
         }
@@ -115,8 +114,8 @@ impl Client {
             .buffer_unordered(self.workers);
 
         requests
-            .for_each(|b| async {
-                if let Err(e) = b {
+            .for_each(|r| async {
+                if let Err(e) = r {
                     eprintln!("Internal tokio::JoinError: {}", e)
                 };
             })
@@ -134,8 +133,7 @@ impl Client {
 
             while now.elapsed().as_secs() < secs {
                 if self.verbose {
-                    // Remove this line, it is only for development purposes
-                    println!("tick {} secs", self.interval);
+                    println!("Pausing for {} seconds", self.interval);
                 }
                 interval.tick().await;
                 self.process_requests().await;

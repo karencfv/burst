@@ -20,9 +20,9 @@ FLAGS:
 
 OPTIONS:
     -d, --duration <duration>    Sends load for the given amount of time set in seconds.
-                                 The actual running time will vary depending on the load, and the time it takes for the
-                                 response to return. If you need the time to be exact set --load=1.
-    -h, --host <host>            Host header to send the requests to. [default: https://www.google.com/]
+                                 The actual running time will vary depending on the load, workers and the time it takes
+                                 for the response to return.
+    -h, --host <host>            Host header to send the requests to.
     -i, --interval <interval>    Interval time between bursts of requests in seconds. Requires --duration to be set.
     -l, --load <load>            Amount of requests to send. [default: 100]
     -p, --pass <pass>            Password for basic authentication.
