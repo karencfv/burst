@@ -36,16 +36,16 @@ OPTIONS:
 Send 300 requests with 5 workers running in parallel:
 
 ```console
-$ burst -l 300 -w 5
+$ burst -h http://127.0.0.1 -l 300 -w 5
 ```
 
 Send a single request continuously during 30 seconds:
 
 ```console
-$ burst -l 1 -d 30
+$ burst -h http://127.0.0.1 -l 1 -d 30
 ```
 
 Send bursts of 20 requests every 2 seconds during 60 seconds:
 ```console
-$ burst -l 20 -d 60 -i 2
+$ burst -h http://127.0.0.1 -l 20 -d 60 -i 2
 ```
