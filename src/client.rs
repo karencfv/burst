@@ -4,9 +4,17 @@ use reqwest::{Method, Result};
 use tokio::time;
 use usdt::dtrace_provider;
 
+use std::process;
 use std::time::{Duration, Instant};
 
 dtrace_provider!("src/burst.d");
+
+#[derive(Clone, Debug)]
+pub enum Kind {
+    Single,
+    Timed,
+    TimedExact,
+}
 
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -20,6 +28,7 @@ pub struct Client {
     pub user: String,
     pub pass: Option<String>,
     pub verbose: bool,
+    pub kind: Kind,
 }
 
 impl Client {
@@ -39,6 +48,12 @@ impl Client {
             .timeout(Duration::from_secs(timeout))
             .build()
             .expect("Unable to build client");
+
+        let mut kind = Kind::Single;
+        if duration > 0 {
+            kind = Kind::Timed;
+        }
+
         Self {
             req_client,
             requests,
@@ -50,6 +65,7 @@ impl Client {
             user,
             pass,
             verbose,
+            kind,
         }
     }
 
@@ -58,14 +74,21 @@ impl Client {
     // Which would be idiomatic Rust?
     pub async fn send_load(&self) {
         let id: u64 = rand::thread_rng().gen();
-        if self.duration > 0 {
-            // maybe remove this line?
-            println!("Sending requests for {} seconds...", self.duration);
-            self.process_requests_timed(id).await;
-        } else {
-            // maybe remove this line?
-            println!("Sending {} requests...", self.requests.len());
-            self.process_requests(id).await;
+
+        match self.kind {
+            Kind::Single => {
+                // maybe remove this line?
+                println!("Sending {} requests...", self.requests.len());
+                self.process_requests(id).await;
+            }
+            Kind::Timed => {
+                // maybe remove this line?
+                println!("Sending requests for {} seconds...", self.duration);
+                self.process_requests_timed(id).await;
+            }
+            Kind::TimedExact => {
+                println!("Not implemented yet");
+            }
         }
     }
 
@@ -100,8 +123,8 @@ impl Client {
             .map(|_| {
                 let client = self.clone();
                 tokio::spawn(async move {
-                    match &client.method {
-                        &Method::GET => {
+                    match client.method {
+                        Method::GET => {
                             if let Err(e) = client.get().await {
                                 eprintln!("Request error: {}", e);
                             }
@@ -144,5 +167,33 @@ impl Client {
             }
         }
         burst_timedrequests__done!(|| id);
+    }
+
+    async fn process_requests_timed_exact(&'static self, id: u64) {
+        if let Err(e) = tokio::task::spawn(async move {
+            tokio::time::sleep(time::Duration::from_secs(self.duration)).await;
+            process::exit(0);
+        })
+        .await
+        {
+            eprintln!("Internal task sleep error: {}", e);
+            process::exit(1);
+        }
+
+        if self.interval > 0 {
+            let mut interval = time::interval(time::Duration::from_secs(self.interval));
+
+            loop {
+                if self.verbose {
+                    println!("Pausing for {} seconds", self.interval);
+                }
+                interval.tick().await;
+                self.process_requests(id).await;
+            }
+        } else {
+            loop {
+                self.process_requests(id).await;
+            }
+        }
     }
 }

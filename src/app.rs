@@ -126,7 +126,7 @@ The actual running time will vary depending on the load, workers and the time it
     let reqs: usize = load.parse().unwrap();
     let requests: Vec<usize> = (0..reqs).collect();
 
-    // Sets duration and interval to 0 unless the duration subcommand has been used.
+    // Sets duration and interval to 0 unless the duration flag has been used.
     // In which case load will be sent for a specified duration as opposed
     // to a single burst of n amount of requests.
     let mut duration: u64 = 0;
