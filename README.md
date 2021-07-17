@@ -14,6 +14,8 @@ USAGE:
     burst [FLAGS] [OPTIONS] --host <host>
 
 FLAGS:
+    -e, --exact      Starts a timer when using --duration. This means that the running time will be exact to the set
+                     duration time, but some requests may have not completed.
         --help       Prints help information
     -V, --version    Prints version information
     -v, --verbose    Enable verbose mode.
@@ -39,7 +41,7 @@ Send 300 requests with 5 workers running in parallel:
 $ burst -h http://127.0.0.1 -l 300 -w 5
 ```
 
-Send a single request continuously during 30 seconds:
+Send a single request continuously during 30 seconds with a timeout of 5 seconds for each request:
 
 ```console
 $ burst -h http://127.0.0.1 -l 1 -d 30
@@ -48,4 +50,9 @@ $ burst -h http://127.0.0.1 -l 1 -d 30
 Send bursts of 20 requests every 2 seconds during 60 seconds:
 ```console
 $ burst -h http://127.0.0.1 -l 20 -d 60 -i 2
+```
+
+Send bursts of 15 requests continuously with a set timer for 10 seconds (Some requests may not have time to send a response back):
+```console
+$ burst -h http://127.0.0.1 -l 15 -d 10 -e
 ```

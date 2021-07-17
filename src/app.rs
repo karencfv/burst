@@ -84,6 +84,14 @@ The actual running time will vary depending on the load, workers and the time it
         .help("Password for basic authentication.")
         .required(false);
 
+    let exact_flag = "exact";
+    let exact_arg = Arg::with_name(exact_flag)
+        .long(exact_flag)
+        .short("e")
+        .requires(duration_flag)
+        .help("Starts a timer when using --duration. This means that the running time will be exact to the set duration time, but some requests may have not completed.")
+        .required(false);
+
     let verbose_flag = "verbose";
     let verbose_arg = Arg::with_name(verbose_flag)
         .long(verbose_flag)
@@ -95,6 +103,7 @@ The actual running time will vary depending on the load, workers and the time it
         .arg(load_arg)
         .arg(duration_arg)
         .arg(interval_arg)
+        .arg(exact_arg)
         .arg(timeout_arg)
         .arg(host_arg)
         .arg(workers_arg)
@@ -147,6 +156,11 @@ The actual running time will vary depending on the load, workers and the time it
         interval = interval_time;
     }
 
+    let mut exact = false;
+    if matches.is_present(exact_flag) {
+        exact = true;
+    }
+
     let mut user = String::from("");
     if matches.is_present(user_flag) {
         let user_str = matches
@@ -177,6 +191,7 @@ The actual running time will vary depending on the load, workers and the time it
         requests,
         duration,
         interval,
+        exact,
         String::from(host),
         workers,
         timeout,

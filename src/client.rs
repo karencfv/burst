@@ -1,11 +1,10 @@
 use futures::{stream, StreamExt};
 use rand::Rng;
 use reqwest::{Method, Result};
-use tokio::time;
 use usdt::dtrace_provider;
 
-use std::process;
 use std::time::{Duration, Instant};
+use std::{process, thread, time};
 
 dtrace_provider!("src/burst.d");
 
@@ -36,6 +35,7 @@ impl Client {
         requests: Vec<usize>,
         duration: u64,
         interval: u64,
+        exact: bool,
         host: String,
         workers: usize,
         timeout: u64,
@@ -49,10 +49,7 @@ impl Client {
             .build()
             .expect("Unable to build client");
 
-        let mut kind = Kind::Single;
-        if duration > 0 {
-            kind = Kind::Timed;
-        }
+        let kind = kind_match(&duration, &exact);
 
         Self {
             req_client,
@@ -77,17 +74,21 @@ impl Client {
 
         match self.kind {
             Kind::Single => {
-                // maybe remove this line?
                 println!("Sending {} requests...", self.requests.len());
                 self.process_requests(id).await;
             }
             Kind::Timed => {
-                // maybe remove this line?
                 println!("Sending requests for {} seconds...", self.duration);
                 self.process_requests_timed(id).await;
             }
             Kind::TimedExact => {
-                println!("Not implemented yet");
+                println!(
+                    "Sending requests and will exit in {} seconds...",
+                    self.duration
+                );
+                burst_timedrequests__start!(|| id);
+                self.process_requests_timed_exact(id).await;
+                burst_timedrequests__done!(|| id);
             }
         }
     }
@@ -152,7 +153,7 @@ impl Client {
 
         burst_timedrequests__start!(|| id);
         if self.interval > 0 {
-            let mut interval = time::interval(time::Duration::from_secs(self.interval));
+            let mut interval = tokio::time::interval(time::Duration::from_secs(self.interval));
 
             while now.elapsed().as_secs() < self.duration {
                 if self.verbose {
@@ -169,19 +170,15 @@ impl Client {
         burst_timedrequests__done!(|| id);
     }
 
-    async fn process_requests_timed_exact(&'static self, id: u64) {
-        if let Err(e) = tokio::task::spawn(async move {
-            tokio::time::sleep(time::Duration::from_secs(self.duration)).await;
+    async fn process_requests_timed_exact(&self, id: u64) {
+        let duration = self.duration;
+        thread::spawn(move || {
+            thread::sleep(time::Duration::from_secs(duration));
             process::exit(0);
-        })
-        .await
-        {
-            eprintln!("Internal task sleep error: {}", e);
-            process::exit(1);
-        }
+        });
 
         if self.interval > 0 {
-            let mut interval = time::interval(time::Duration::from_secs(self.interval));
+            let mut interval = tokio::time::interval(time::Duration::from_secs(self.interval));
 
             loop {
                 if self.verbose {
@@ -195,5 +192,13 @@ impl Client {
                 self.process_requests(id).await;
             }
         }
+    }
+}
+
+fn kind_match(duration: &u64, exact: &bool) -> Kind {
+    match exact {
+        false if { duration > &0 } => Kind::Timed,
+        true if { duration > &0 } => Kind::TimedExact,
+        _ => Kind::Single,
     }
 }
