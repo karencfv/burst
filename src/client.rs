@@ -79,15 +79,23 @@ impl Client {
             }
             Kind::Timed => {
                 println!("Sending requests for {} seconds...", self.duration);
+
+                burst_timedrequests__start!(|| id);
+
                 self.process_requests_timed(id).await;
+
+                burst_timedrequests__done!(|| id);
             }
             Kind::TimedExact => {
                 println!(
                     "Sending requests and will exit in {} seconds...",
                     self.duration
                 );
+
                 burst_timedrequests__start!(|| id);
+
                 self.process_requests_timed_exact(id).await;
+
                 burst_timedrequests__done!(|| id);
             }
         }
@@ -151,7 +159,6 @@ impl Client {
     async fn process_requests_timed(&self, id: u64) {
         let now = Instant::now();
 
-        burst_timedrequests__start!(|| id);
         if self.interval > 0 {
             let mut interval = tokio::time::interval(time::Duration::from_secs(self.interval));
 
@@ -167,7 +174,6 @@ impl Client {
                 self.process_requests(id).await;
             }
         }
-        burst_timedrequests__done!(|| id);
     }
 
     async fn process_requests_timed_exact(&self, id: u64) {

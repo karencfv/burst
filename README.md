@@ -49,7 +49,7 @@ $ burst -h http://127.0.0.1 -l 1 -d 30
 
 Send bursts of 20 requests every 2 seconds during 60 seconds:
 ```console
-$ burst -h http://127.0.0.1 -l 20 -d 60 -i 2
+$ burst -h http://127.0.0.1 -l 20 -d 60 -i 2 -t 5
 ```
 
 Send bursts of 15 requests continuously with a set timer for 10 seconds (Some requests may not have time to send a response back):
