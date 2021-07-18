@@ -138,51 +138,57 @@ The actual running time will vary depending on the load, workers and the time it
     // Sets duration and interval to 0 unless the duration flag has been used.
     // In which case load will be sent for a specified duration as opposed
     // to a single burst of n amount of requests.
-    let mut duration: u64 = 0;
-    if matches.is_present(duration_flag) {
+    let duration: u64 = if matches.is_present(duration_flag) {
         let time = matches
             .value_of(duration_flag)
             .expect(validate_flag_error!(duration_flag));
         let time: u64 = time.parse().unwrap();
-        duration = time;
-    }
+        time
+    } else {
+        0
+    };
 
-    let mut interval: u64 = 0;
-    if matches.is_present(interval_flag) {
+    let interval: u64 = if matches.is_present(interval_flag) {
         let interval_time = matches
             .value_of(interval_flag)
             .expect(validate_flag_error!(interval_flag));
         let interval_time: u64 = interval_time.parse().unwrap();
-        interval = interval_time;
-    }
+        interval_time
+    } else {
+        0
+    };
 
-    let mut exact = false;
-    if matches.is_present(exact_flag) {
-        exact = true;
-    }
+    let exact = if matches.is_present(exact_flag) {
+        true
+    } else {
+        false
+    };
 
-    let mut user = String::from("");
-    if matches.is_present(user_flag) {
+    let user = if matches.is_present(user_flag) {
         let user_str = matches
             .value_of(user_flag)
             .expect(validate_flag_error!(user_flag));
         let user_str: String = user_str.parse().unwrap();
-        user = user_str;
-    }
+        user_str
+    } else {
+        String::from("")
+    };
 
-    let mut pass = None;
-    if matches.is_present(pass_flag) {
+    let pass = if matches.is_present(pass_flag) {
         let pass_str = matches
             .value_of(pass_flag)
             .expect(validate_flag_error!(pass_flag));
         let pass_str: String = pass_str.parse().unwrap();
-        pass = Some(pass_str);
-    }
+        Some(pass_str)
+    } else {
+        None
+    };
 
-    let mut verbose = false;
-    if matches.is_present(verbose_flag) {
-        verbose = true;
-    }
+    let verbose = if matches.is_present(verbose_flag) {
+        true
+    } else {
+        false
+    };
 
     // For now hardcoding this to GET, but will introduce other HTTP methods eventually
     let method = Method::GET;
