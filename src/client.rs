@@ -44,8 +44,10 @@ impl Client {
         pass: Option<String>,
         verbose: bool,
     ) -> Self {
+        let user_agent: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
         let req_client = reqwest::Client::builder()
             .timeout(Duration::from_secs(timeout))
+            .user_agent(user_agent)
             .build()
             .expect("Unable to build client");
 
