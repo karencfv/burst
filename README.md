@@ -56,3 +56,32 @@ Send bursts of 15 requests continuously with a set timer for 10 seconds (Some re
 ```console
 $ burst -h http://127.0.0.1 -l 15 -d 10 -e
 ```
+
+## Using DTrace
+
+Burst has [four probes](./src/burst.d) available which can be leveraged in conjunction with DTrace to retrieve useful information. 
+
+Try the sample script found in [scripts/](./scripts/request_lifetime.sh) while burst is running, as shown below:
+
+```console
+$ sudo ./scripts/request_lifetime.sh 
+
+Summary of all GET request round trips taken in ten seconds represented in nanoseconds:
+  total requests                                                 1344
+  average request lifetime                                   13714645
+  max request lifetime                                       43921416
+  min request lifetime                                         888625
+  request lifetimes visualisation                   
+           value  ------------- Distribution ------------- count    
+          262144 |                                         0        
+          524288 |@@@                                      100      
+         1048576 |@@@                                      104      
+         2097152 |@@                                       64       
+         4194304 |@@@@@                                    170      
+         8388608 |@@@@@@@@@@@@@                            424      
+        16777216 |@@@@@@@@@@@@@                            441      
+        33554432 |@                                        41       
+        67108864 |                                         0  
+```
+
+To find more information on using DTrace, visit the official [Dynamic Tracing Guide](https://illumos.org/books/dtrace/preface.html#preface).

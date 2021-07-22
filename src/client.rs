@@ -82,11 +82,7 @@ impl Client {
             Kind::Timed => {
                 println!("Sending requests for {} seconds...", self.duration);
 
-                burst_timedrequests__start!(|| id);
-
                 self.process_requests_timed(id).await;
-
-                burst_timedrequests__done!(|| id);
             }
             Kind::TimedExact => {
                 println!(
@@ -94,11 +90,7 @@ impl Client {
                     self.duration
                 );
 
-                burst_timedrequests__start!(|| id);
-
                 self.process_requests_timed_exact(id).await;
-
-                burst_timedrequests__done!(|| id);
             }
         }
     }
