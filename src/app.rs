@@ -15,6 +15,7 @@ const WORKERS_FLAG: &str = "workers";
 const DURATION_FLAG: &str = "duration";
 const INTERVAL_FLAG: &str = "interval";
 const TIMEOUT_FLAG: &str = "timeout";
+const METHOD_FLAG: &str = "method";
 const HOST_FLAG: &str = "host";
 const USER_FLAG: &str = "user";
 const PASS_FLAG: &str = "pass";
@@ -73,6 +74,14 @@ The actual running time will vary depending on the load, workers and the time it
         .help("Host header to send the requests to.")
         .required(true);
 
+    let method_arg = Arg::with_name(METHOD_FLAG)
+        .long(METHOD_FLAG)
+        .short("m")
+        .takes_value(true)
+        .help("HTTP method for request. One of 'get', 'post', 'put', or 'patch'.")
+        .default_value("get")
+        .required(false);
+
     let user_arg = Arg::with_name(USER_FLAG)
         .long(USER_FLAG)
         .short("u")
@@ -110,6 +119,7 @@ The actual running time will vary depending on the load, workers and the time it
         .arg(pass_arg)
         .arg(verbose_arg)
         .arg(user_arg)
+        .arg(method_arg)
 }
 
 pub fn burst_app() -> Client {
@@ -132,6 +142,11 @@ pub fn burst_app() -> Client {
     let host = matches
         .value_of(HOST_FLAG)
         .expect(validate_flag_error!(HOST_FLAG));
+    let host: String = host.parse().unwrap();
+
+    let method = matches
+        .value_of(METHOD_FLAG)
+        .expect(validate_flag_error!(METHOD_FLAG));
 
     let workers: usize = workers.parse().unwrap();
     let timeout: u64 = timeout.parse().unwrap();
@@ -194,18 +209,39 @@ pub fn burst_app() -> Client {
         false
     };
 
+    let http_method: Method;
+
+    match method {
+        "get" => {
+            http_method = Method::GET;
+        }
+        "post" => {
+            http_method = Method::POST;
+        }
+        "put" => {
+            http_method = Method::PUT;
+        }
+        "patch" => {
+            http_method = Method::PATCH;
+        }
+        _ => panic!(
+            "{} is not a supported HTTP method. Use one of: 'get', 'post', 'put', or 'patch'.",
+            method
+        ),
+    };
+
     // For now hardcoding this to GET, but will introduce other HTTP methods eventually
-    let method = Method::GET;
+    // let method = Method::GET;
 
     Client::new(
         requests,
         duration,
         interval,
         exact,
-        String::from(host),
+        host,
         workers,
         timeout,
-        method,
+        http_method,
         user,
         pass,
         verbose,
