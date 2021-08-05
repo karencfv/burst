@@ -1,3 +1,5 @@
+[![Build](https://github.com/karencfv/burst/actions/workflows/test.yml/badge.svg)](https://github.com/karencfv/burst/actions/workflows/test.yml)
+
 # Burst 💥
 
 Burst is a simple tool that sends load to a host.
