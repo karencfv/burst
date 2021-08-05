@@ -24,6 +24,7 @@ pub struct Client {
     pub host: String,
     pub workers: usize,
     pub method: Method,
+    pub body: String,
     pub user: String,
     pub pass: Option<String>,
     pub verbose: bool,
@@ -40,6 +41,7 @@ impl Client {
         workers: usize,
         timeout: u64,
         method: Method,
+        body: String,
         user: String,
         pass: Option<String>,
         verbose: bool,
@@ -61,6 +63,7 @@ impl Client {
             host,
             workers,
             method,
+            body,
             user,
             pass,
             verbose,
@@ -119,6 +122,69 @@ impl Client {
         Ok(())
     }
 
+    async fn post(&self) -> Result<()> {
+        let id = rand::thread_rng().gen();
+        burst_post__start!(|| id);
+
+        let res = self
+            .req_client
+            .post(&self.host)
+            .basic_auth(&self.user, self.pass.as_ref())
+            .body(self.body.to_string())
+            .send()
+            .await?;
+
+        burst_post__done!(|| id);
+
+        if self.verbose {
+            println!("Request ID: {} status: {}", id, res.status());
+        }
+
+        Ok(())
+    }
+
+    async fn put(&self) -> Result<()> {
+        let id = rand::thread_rng().gen();
+        burst_put__start!(|| id);
+
+        let res = self
+            .req_client
+            .put(&self.host)
+            .basic_auth(&self.user, self.pass.as_ref())
+            .body(self.body.to_string())
+            .send()
+            .await?;
+
+        burst_put__done!(|| id);
+
+        if self.verbose {
+            println!("Request ID: {} status: {}", id, res.status());
+        }
+
+        Ok(())
+    }
+
+    async fn patch(&self) -> Result<()> {
+        let id = rand::thread_rng().gen();
+        burst_patch__start!(|| id);
+
+        let res = self
+            .req_client
+            .patch(&self.host)
+            .basic_auth(&self.user, self.pass.as_ref())
+            .body(self.body.to_string())
+            .send()
+            .await?;
+
+        burst_patch__done!(|| id);
+
+        if self.verbose {
+            println!("Request ID: {} status: {}", id, res.status());
+        }
+
+        Ok(())
+    }
+
     async fn process_requests(&self, id: u64) {
         burst_requests__start!(|| id);
 
@@ -132,7 +198,21 @@ impl Client {
                                 eprintln!("Request error: {}", e);
                             }
                         }
-                        // TODO: Implement other methods
+                        Method::POST => {
+                            if let Err(e) = client.post().await {
+                                eprintln!("Request error: {}", e);
+                            }
+                        }
+                        Method::PUT => {
+                            if let Err(e) = client.put().await {
+                                eprintln!("Request error: {}", e);
+                            }
+                        }
+                        Method::PATCH => {
+                            if let Err(e) = client.patch().await {
+                                eprintln!("Request error: {}", e);
+                            }
+                        }
                         _ => eprintln!("{} is not a supported HTTP method", client.method),
                     }
                 })

@@ -16,6 +16,7 @@ const DURATION_FLAG: &str = "duration";
 const INTERVAL_FLAG: &str = "interval";
 const TIMEOUT_FLAG: &str = "timeout";
 const METHOD_FLAG: &str = "method";
+const BODY_FLAG: &str = "body";
 const HOST_FLAG: &str = "host";
 const USER_FLAG: &str = "user";
 const PASS_FLAG: &str = "pass";
@@ -82,6 +83,13 @@ The actual running time will vary depending on the load, workers and the time it
         .default_value("get")
         .required(false);
 
+    let body_arg = Arg::with_name(BODY_FLAG)
+        .long(BODY_FLAG)
+        .short("b")
+        .takes_value(true)
+        .help("HTTP request body.")
+        .required(false);
+
     let user_arg = Arg::with_name(USER_FLAG)
         .long(USER_FLAG)
         .short("u")
@@ -120,6 +128,7 @@ The actual running time will vary depending on the load, workers and the time it
         .arg(verbose_arg)
         .arg(user_arg)
         .arg(method_arg)
+        .arg(body_arg)
 }
 
 pub fn burst_app() -> Client {
@@ -203,6 +212,16 @@ pub fn burst_app() -> Client {
         None
     };
 
+    let body = if matches.is_present(BODY_FLAG) {
+        let body_str = matches
+            .value_of(BODY_FLAG)
+            .expect(validate_flag_error!(BODY_FLAG));
+        let body_str: String = body_str.parse().unwrap();
+        body_str
+    } else {
+        String::from("")
+    };
+
     let verbose = if matches.is_present(VERBOSE_FLAG) {
         true
     } else {
@@ -242,6 +261,7 @@ pub fn burst_app() -> Client {
         workers,
         timeout,
         http_method,
+        body,
         user,
         pass,
         verbose,

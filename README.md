@@ -21,12 +21,14 @@ FLAGS:
     -v, --verbose    Enable verbose mode.
 
 OPTIONS:
+    -b, --body <body>            HTTP request body.
     -d, --duration <duration>    Sends load for the given amount of time set in seconds.
                                  The actual running time will vary depending on the load, workers and the time it takes
                                  for the response to return.
     -h, --host <host>            Host header to send the requests to.
     -i, --interval <interval>    Interval time between bursts of requests in seconds. Requires --duration to be set.
     -l, --load <load>            Amount of requests to send. [default: 100]
+    -m, --method <method>        HTTP method for request. One of 'get', 'post', 'put', or 'patch'. [default: get]
     -p, --pass <pass>            Password for basic authentication.
     -t, --timeout <timeout>      Timeout in seconds for each request. [default: 20]
     -u, --user <user>            User for basic authentication.
@@ -55,6 +57,11 @@ $ burst -h http://127.0.0.1 -l 20 -d 60 -i 2 -t 5
 Send bursts of 15 requests continuously with a set timer for 10 seconds (Some requests may not have time to send a response back):
 ```console
 $ burst -h http://127.0.0.1 -l 15 -d 10 -e
+```
+
+Send a single PUT request:
+```console
+$ burst -h http://127.0.0.1 -l 1 -m put -b '{"some_key":"some_value"}'
 ```
 
 ## Using DTrace
