@@ -21,18 +21,19 @@ FLAGS:
     -v, --verbose    Enable verbose mode.
 
 OPTIONS:
-    -b, --body <body>            HTTP request body.
-    -d, --duration <duration>    Sends load for the given amount of time set in seconds.
-                                 The actual running time will vary depending on the load, workers and the time it takes
-                                 for the response to return.
-    -h, --host <host>            Host header to send the requests to.
-    -i, --interval <interval>    Interval time between bursts of requests in seconds. Requires --duration to be set.
-    -l, --load <load>            Amount of requests to send. [default: 100]
-    -m, --method <method>        HTTP method for request. One of 'get', 'post', 'put', or 'patch'. [default: get]
-    -p, --pass <pass>            Password for basic authentication.
-    -t, --timeout <timeout>      Timeout in seconds for each request. [default: 20]
-    -u, --user <user>            User for basic authentication.
-    -w, --workers <workers>      Number of workers to run in parallel. [default: 10]
+    -b, --body <body>              HTTP request body.
+    -f, --body-file <body-file>    Read HTTP request body from file.
+    -d, --duration <duration>      Sends load for the given amount of time set in seconds.
+                                   The actual running time will vary depending on the load, workers and the time it
+                                   takes for the response to return.
+    -h, --host <host>              Host header to send the requests to.
+    -i, --interval <interval>      Interval time between bursts of requests in seconds. Requires --duration to be set.
+    -l, --load <load>              Amount of requests to send. [default: 100]
+    -m, --method <method>          HTTP method for request. One of 'get', 'post', 'put', or 'patch'. [default: get]
+    -p, --pass <pass>              Password for basic authentication.
+    -t, --timeout <timeout>        Timeout in seconds for each request. [default: 20]
+    -u, --user <user>              User for basic authentication.
+    -w, --workers <workers>        Number of workers to run in parallel. [default: 10]
 ```
 
 ## Examples

@@ -1,6 +1,8 @@
 use clap::{App, Arg};
 use reqwest::Method;
 
+use std::fs;
+
 use crate::client::Client;
 
 //#[macro_use]
@@ -17,6 +19,7 @@ const INTERVAL_FLAG: &str = "interval";
 const TIMEOUT_FLAG: &str = "timeout";
 const METHOD_FLAG: &str = "method";
 const BODY_FLAG: &str = "body";
+const BODY_FILE_FLAG: &str = "body-file";
 const HOST_FLAG: &str = "host";
 const USER_FLAG: &str = "user";
 const PASS_FLAG: &str = "pass";
@@ -90,6 +93,14 @@ The actual running time will vary depending on the load, workers and the time it
         .help("HTTP request body.")
         .required(false);
 
+    let body_file_arg = Arg::with_name(BODY_FILE_FLAG)
+        .long(BODY_FILE_FLAG)
+        .short("f")
+        .takes_value(true)
+        .help("Read HTTP request body from file.")
+        .required(false)
+        .conflicts_with(BODY_FLAG);
+
     let user_arg = Arg::with_name(USER_FLAG)
         .long(USER_FLAG)
         .short("u")
@@ -129,6 +140,7 @@ The actual running time will vary depending on the load, workers and the time it
         .arg(user_arg)
         .arg(method_arg)
         .arg(body_arg)
+        .arg(body_file_arg)
 }
 
 pub fn burst_app() -> Client {
@@ -218,6 +230,12 @@ pub fn burst_app() -> Client {
             .expect(validate_flag_error!(BODY_FLAG));
         let body_str: String = body_str.parse().unwrap();
         body_str
+    } else if matches.is_present(BODY_FILE_FLAG) {
+        let filename = matches
+            .value_of(BODY_FILE_FLAG)
+            .expect(validate_flag_error!(BODY_FILE_FLAG));
+        let body_contents = fs::read_to_string(filename).unwrap();
+        body_contents
     } else {
         String::from("")
     };

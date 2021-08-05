@@ -32,6 +32,21 @@ fn unsupported_method() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+fn flag_conflict() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("burst")?;
+
+    cmd.arg("--host").arg("https://localhost:8888");
+    cmd.arg("-b").arg("request_body");
+    cmd.arg("-f").arg("test.json");
+
+    cmd.assert().failure().stderr(predicate::str::contains(
+        "The argument '--body <body>' cannot be used with '--body-file <body-file>'",
+    ));
+
+    Ok(())
+}
+
+#[test]
 fn cmd_success() -> Result<(), Box<dyn std::error::Error>> {
     let host = &mockito::server_url();
     let mut cmd = Command::cargo_bin("burst")?;
@@ -50,7 +65,7 @@ fn cmd_success_with_exact_duration_and_interval() -> Result<(), Box<dyn std::err
     cmd.arg("-u").arg("spongebob");
     cmd.arg("-p").arg("supersekretpassword");
     cmd.arg("-m").arg("patch");
-    cmd.arg("-b").arg("request_body");
+    cmd.arg("-f").arg("test.json");
     cmd.arg("-l").arg("3");
     cmd.arg("-d").arg("2");
     cmd.arg("-i").arg("1");
