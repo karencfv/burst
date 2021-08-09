@@ -2,9 +2,8 @@
 
 # Burst 💥
 
-Burst is a simple tool that sends load to a host.
+Burst is a simple tool that sends load to a host. It allows you to stress test a host or endpoint by sending a configurable amount of load.
 
-_WARNING: Burst is under active development. Subcommands and flags may change at any moment._
 
 ## How to use
 
