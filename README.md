@@ -48,12 +48,12 @@ $ burst -h http://127.0.0.1 -l 300 -w 5
 Send a single request continuously during 30 seconds with a timeout of 5 seconds for each request:
 
 ```console
-$ burst -h http://127.0.0.1 -l 1 -d 30
+$ burst -h http://127.0.0.1 -l 1 -d 30 -t 5
 ```
 
 Send bursts of 20 requests every 2 seconds during 60 seconds:
 ```console
-$ burst -h http://127.0.0.1 -l 20 -d 60 -i 2 -t 5
+$ burst -h http://127.0.0.1 -l 20 -d 60 -i 2
 ```
 
 Send bursts of 15 requests continuously with a set timer for 10 seconds (Some requests may not have time to send a response back):
