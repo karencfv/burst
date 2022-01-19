@@ -5,10 +5,9 @@ use std::fs;
 
 use crate::client::Client;
 
-//#[macro_use]
 macro_rules! validate_flag_error {
     ($flag:tt) => {
-        &format!("A value for {} is required", $flag);
+        &format!("A value for {} is required", $flag)
     };
 }
 
@@ -266,9 +265,6 @@ pub fn burst_app() -> Client {
             method
         ),
     };
-
-    // For now hardcoding this to GET, but will introduce other HTTP methods eventually
-    // let method = Method::GET;
 
     Client::new(
         requests,

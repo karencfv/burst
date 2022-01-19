@@ -3,6 +3,7 @@ use rand::Rng;
 use reqwest::{Method, Result};
 use usdt::dtrace_provider;
 
+use std::arch::asm;
 use std::time::{Duration, Instant};
 use std::{process, thread, time};
 
@@ -99,8 +100,8 @@ impl Client {
     }
 
     async fn get(&self) -> Result<()> {
-        let id = rand::thread_rng().gen();
-        burst_get__start!(|| id);
+        let id: u64 = rand::thread_rng().gen();
+        burst::get__start!(|| id);
 
         let res = self
             .req_client
@@ -108,7 +109,7 @@ impl Client {
             .basic_auth(&self.user, self.pass.as_ref())
             .send()
             .await?;
-        burst_get__done!(|| id);
+        burst::get__done!(|| id);
 
         // TODO: Maybe create a summary of how many requests returned each status as well?
         if self.verbose {
@@ -123,8 +124,8 @@ impl Client {
     }
 
     async fn post(&self) -> Result<()> {
-        let id = rand::thread_rng().gen();
-        burst_post__start!(|| id);
+        let id: u64 = rand::thread_rng().gen();
+        burst::post__start!(|| id);
 
         let res = self
             .req_client
@@ -134,7 +135,7 @@ impl Client {
             .send()
             .await?;
 
-        burst_post__done!(|| id);
+        burst::post__done!(|| id);
 
         if self.verbose {
             println!("Request ID: {} status: {}", id, res.status());
@@ -144,8 +145,8 @@ impl Client {
     }
 
     async fn put(&self) -> Result<()> {
-        let id = rand::thread_rng().gen();
-        burst_put__start!(|| id);
+        let id: u64 = rand::thread_rng().gen();
+        burst::put__start!(|| id);
 
         let res = self
             .req_client
@@ -155,7 +156,7 @@ impl Client {
             .send()
             .await?;
 
-        burst_put__done!(|| id);
+        burst::put__done!(|| id);
 
         if self.verbose {
             println!("Request ID: {} status: {}", id, res.status());
@@ -165,8 +166,8 @@ impl Client {
     }
 
     async fn patch(&self) -> Result<()> {
-        let id = rand::thread_rng().gen();
-        burst_patch__start!(|| id);
+        let id: u64 = rand::thread_rng().gen();
+        burst::patch__start!(|| id);
 
         let res = self
             .req_client
@@ -176,7 +177,7 @@ impl Client {
             .send()
             .await?;
 
-        burst_patch__done!(|| id);
+        burst::patch__done!(|| id);
 
         if self.verbose {
             println!("Request ID: {} status: {}", id, res.status());
@@ -186,7 +187,7 @@ impl Client {
     }
 
     async fn process_requests(&self, id: u64) {
-        burst_requests__start!(|| id);
+        burst::requests__start!(|| id);
 
         let requests = stream::iter(&self.requests)
             .map(|_| {
@@ -227,7 +228,7 @@ impl Client {
             })
             .await;
 
-        burst_requests__done!(|| id);
+        burst::requests__done!(|| id);
     }
 
     async fn process_requests_timed(&self, id: u64) {
